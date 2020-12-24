@@ -9,11 +9,14 @@ import (
 ```go
 type PsOptions struct {
 	All bool
+	FilterNames []string
 }
 
 type RunOptions struct {
 	Image string
 	Name string
+	Force bool
+	Env map[string]string
 }
 ```
 ### docker
@@ -26,9 +29,16 @@ docker.Run(options *docker.RunOptions)
 ```
 
 ## Changelog
+### v0.0.4
+* added environment variables for docker run
+* added force option to force an existing container to be removed
+* added filter by name option to docker ps
+
+### v0.0.3
+* added docker run command
+
 ### v0.0.2
 * added docker ps command
-* added docker run command
 * removed test commands
 
 ### v0.0.1
