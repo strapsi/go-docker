@@ -77,7 +77,7 @@ func Run(options *RunOptions) error {
 		config.Env = env
 		hostConfig := _container.HostConfig{
 			PortBindings: nat.PortMap{
-				"9090/tcp": []nat.PortBinding{
+				nat.Port("9090"): []nat.PortBinding{
 					{
 						HostPort: "9090",
 						HostIP: "0.0.0.0",
