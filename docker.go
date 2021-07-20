@@ -3,8 +3,6 @@ package docker
 import (
 	"context"
 	"fmt"
-	"github.com/docker/go-connections/nat"
-
 	_types "github.com/docker/docker/api/types"
 	_container "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -75,20 +73,21 @@ func Run(options *RunOptions) error {
 		config := _container.Config{
 			Image: options.Image,
 			Env:   env,
-			ExposedPorts: map[nat.Port]struct{}{
-				"9090/tcp": {},
-			},
+			//ExposedPorts: map[nat.Port]struct{}{
+			//	"9090/tcp": {},
+			//},
 		}
 		hostConfig := _container.HostConfig{
-			PublishAllPorts: true,
-			PortBindings: nat.PortMap{
-				"9090/tcp": []nat.PortBinding{
-					{
-						HostPort: "9090",
-						HostIP:   "0.0.0.0",
-					},
-				},
-			},
+			NetworkMode: "host",
+			//PublishAllPorts: true,
+			//PortBindings: nat.PortMap{
+			//	"9090/tcp": []nat.PortBinding{
+			//		{
+			//			HostPort: "9090",
+			//			HostIP:   "0.0.0.0",
+			//		},
+			//	},
+			//},
 		}
 		networkConfig := network.NetworkingConfig{}
 		result, err := cli.ContainerCreate(ctx, &config, &hostConfig, &networkConfig, &platform, options.Name)
