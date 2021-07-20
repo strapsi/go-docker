@@ -76,6 +76,7 @@ func Run(options *RunOptions) error {
 		config.Image = options.Image
 		config.Env = env
 		hostConfig := _container.HostConfig{
+			PublishAllPorts: true,
 			PortBindings: nat.PortMap{
 				nat.Port("9090"): []nat.PortBinding{
 					{
