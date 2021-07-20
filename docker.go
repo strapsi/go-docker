@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"fmt"
+	"github.com/docker/go-connections/nat"
 
 	_types "github.com/docker/docker/api/types"
 	_container "github.com/docker/docker/api/types/container"
@@ -23,6 +24,7 @@ type RunOptions struct {
 	Name string
 	Force bool
 	Env map[string]string
+	Ports map[string]string
 }
 
 var ctx context.Context
@@ -73,7 +75,15 @@ func Run(options *RunOptions) error {
 		config := _container.Config{}
 		config.Image = options.Image
 		config.Env = env
-		hostConfig := _container.HostConfig{}
+		hostConfig := _container.HostConfig{
+			PortBindings: nat.PortMap{
+				"9090": []nat.PortBinding{
+					{
+						HostPort: "9090",
+					},
+				},
+			},
+		}
 		networkConfig := network.NetworkingConfig{}
 		result, err := cli.ContainerCreate(ctx, &config, &hostConfig, &networkConfig, &platform, options.Name)
 		if err != nil {
