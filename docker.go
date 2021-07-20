@@ -7,7 +7,7 @@ import (
 
 	_types "github.com/docker/docker/api/types"
 	_container "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"	
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 
@@ -15,15 +15,15 @@ import (
 )
 
 type PsOptions struct {
-	All bool
+	All         bool
 	FilterNames []string
 }
 
 type RunOptions struct {
 	Image string
-	Name string
+	Name  string
 	Force bool
-	Env map[string]string
+	Env   map[string]string
 	Ports map[string]string
 }
 
@@ -39,11 +39,11 @@ func Ps(options *PsOptions) ([]_types.Container, error) {
 			filter.Add("name", f)
 		}
 	}
-	
+
 	clo := _types.ContainerListOptions{}
 	clo.Filters = filter
 	clo.All = options.All
-	
+
 	containers, err := cli.ContainerList(ctx, clo)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func Run(options *RunOptions) error {
 
 	var container_id string
 	// container does not exist => create
-	if len(containers) == 0 {		
+	if len(containers) == 0 {
 		env := make([]string, len(options.Env))
 		i := 0
 		for k, v := range options.Env {
@@ -72,16 +72,20 @@ func Run(options *RunOptions) error {
 		}
 
 		// create container
-		config := _container.Config{}
-		config.Image = options.Image
-		config.Env = env
+		config := _container.Config{
+			Image: options.Image,
+			Env:   env,
+			ExposedPorts: map[nat.Port]struct{}{
+				"9090/tcp": {},
+			},
+		}
 		hostConfig := _container.HostConfig{
 			PublishAllPorts: true,
 			PortBindings: nat.PortMap{
-				nat.Port("9090"): []nat.PortBinding{
+				"9090/tcp": []nat.PortBinding{
 					{
 						HostPort: "9090",
-						HostIP: "0.0.0.0",
+						HostIP:   "0.0.0.0",
 					},
 				},
 			},
@@ -94,25 +98,25 @@ func Run(options *RunOptions) error {
 		container_id = result.ID
 	} else { // container exists
 		con := containers[0]
-		if options.Force {		
+		if options.Force {
 			container_id = con.ID
 			switch con.State {
 			case "running": // restart
 				cli.ContainerStop(ctx, container_id, nil)
-			// case "created":
-			// case "exited":
-			// default:
-			}		
+				// case "created":
+				// case "exited":
+				// default:
+			}
 		} else {
 			return fmt.Errorf("container <%s> already exists: state = %s\nuse option `Force` or another container name\n", options.Name, con.State)
 		}
 	}
 
 	// start container
-	err = cli.ContainerStart(ctx, container_id, _types.ContainerStartOptions{})		
-	if err != nil {			
+	err = cli.ContainerStart(ctx, container_id, _types.ContainerStartOptions{})
+	if err != nil {
 		return err
-	}	
+	}
 	return nil
 }
 
@@ -128,4 +132,3 @@ func init() {
 	platform = specs.Platform{}
 	platform.OS = "linux"
 }
-
